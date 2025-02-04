@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  backend:
+    build: ./backend
+    container_name: backend
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./backend:/app # Sinkronisasi perubahan kode tanpa restart
+      - /app/node_modules # Hindari overwrite node_modules
+    environment:
+      - MONGO_URI=mongodb://mongo:27017/portofolio
+    depends_on:
+      - mongo
+
+  frontend:
+    build: ./frontend
+    container_name: frontend
+    ports:
+      - "5173:5173" # Sesuaikan dengan port yang digunakan Vite
+    volumes:
+      - ./frontend:/app # Sinkronisasi perubahan kode tanpa restart
+      - /app/node_modules # Hindari overwrite node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true # Agar hot-reloading berjalan di Docker
+    command: ["npm", "run", "dev", "--", "--host"] # Menjalankan Vite di Docker
+    depends_on:
+      - backend
+
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+volumes:
+  mongo-data:
