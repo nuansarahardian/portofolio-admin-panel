@@ -11,6 +11,12 @@ import ECommerce from './pages/Dashboard/ECommerce';
 import FormElements from './pages/Form/FormElements';
 import FormLayout from './pages/Form/FormLayout';
 import Profile from './pages/Profile';
+import AboutCreate from './pages/About/AboutCreate';
+import AboutUpdate from './pages/About/AboutUpdate';
+import About from './pages/About/About';
+import Certificate from './pages/Certificate/Certificate';
+import CertificateUpdate from './pages/Certificate/CertificateUpdate';
+import CertificateCreate from './pages/Certificate/CertificateCreate';
 import Settings from './pages/Settings';
 import Tables from './pages/Tables';
 import Alerts from './pages/UiElements/Alerts';
@@ -52,6 +58,48 @@ function App() {
             </>
           }
         />
+        <Route
+          path="/aboutcreate"
+          element={
+            <>
+              <PageTitle title="About" />
+              <AboutCreate />
+            </>
+          }
+        />
+        <Route path="/aboutupdate/:_id" element={<AboutUpdate />} />
+        <Route
+          path="/about"
+          element={
+            <>
+              <PageTitle title="About" />
+              <About />
+            </>
+          }
+        />
+        <Route
+          path="/certificate"
+          element={
+            <>
+              <PageTitle title="Certificate" />
+              <Certificate />
+            </>
+          }
+        />
+        <Route
+          path="/certificate_create"
+          element={
+            <>
+              <PageTitle title="Create Certificate" />
+              <CertificateCreate />
+            </>
+          }
+        />
+        <Route
+          path="/certificate_update/:_id"
+          element={<CertificateUpdate />}
+        />
+
         <Route
           path="/profile"
           element={

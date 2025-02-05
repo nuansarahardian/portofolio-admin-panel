@@ -22,7 +22,21 @@ const getCertificateById = async (req, res) => {
 
 const createCertificate = async (req, res) => {
   try {
-    const certificate = await Certificate.create(req.body);
+    const { title, year, company, category } = req.body;
+    // Ambil path gambar yang di-upload
+    const image = req.file ? req.file.path : null; // Menyimpan path file jika gambar di-upload
+
+    // Membuat data sertifikat dengan gambar
+    const certificate = new Certificate({
+      title,
+      year,
+      company,
+      category,
+      image, // Menyimpan path gambar ke database
+    });
+
+    // Simpan certificate ke database
+    await certificate.save();
     res.status(201).json(certificate);
   } catch (error) {
     res.status(500).json({ message: error.message });

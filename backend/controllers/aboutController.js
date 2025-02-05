@@ -49,12 +49,18 @@ const updateAbout = async (req, res) => {
 // Menghapus data About berdasarkan ID
 const deleteAbout = async (req, res) => {
   try {
-    const about = await About.findByIdAndDelete(req.params.id);
-    if (!about)
-      return res.status(404).json({ message: "Data tidak ditemukan" });
-    res.status(200).json({ message: "Data berhasil dihapus" });
+    const { id } = req.params;
+    console.log("ID yang diterima untuk dihapus:", id);
+
+    const deletedAbout = await About.findByIdAndDelete(id);
+    if (!deletedAbout) {
+      return res.status(404).json({ message: "About not found" });
+    }
+
+    res.status(200).json({ message: "About deleted successfully" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Error di backend:", error);
+    res.status(500).json({ message: "Internal Server Error", error });
   }
 };
 
