@@ -1,11 +1,22 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
+import axios from 'axios';
+
+// Definisi tipe untuk data About
+interface AboutData {
+  self_desc: string;
+  location: string;
+  education: string;
+  experience_desc: string;
+}
+
+const apiUrl = import.meta.env.VITE_API_URL;
 
 const AboutUpdate = () => {
   const navigate = useNavigate();
-  const { _id } = useParams(); // Mengambil ID dari URL
-  const [formData, setFormData] = useState({
+  const { _id } = useParams<{ _id: string }>(); // Pastikan ID bertipe string
+  const [formData, setFormData] = useState<AboutData>({
     self_desc: '',
     location: '',
     education: '',
@@ -16,14 +27,10 @@ const AboutUpdate = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/abouts/${_id}`);
-        if (!response.ok) {
-          throw new Error('Gagal mengambil data About');
-        }
-        const data = await response.json();
-        setFormData(data); // Set data ke state
+        const { data } = await axios.get(`${apiUrl}/abouts/${_id}`);
+        setFormData(data);
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching data:', error);
       }
     };
 
@@ -32,29 +39,21 @@ const AboutUpdate = () => {
     }
   }, [_id]);
 
-  const handleChange = (e) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch(`http://localhost:5000/abouts/${_id}`, {
-        method: 'PUT', // Menggunakan PUT untuk update
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Gagal mengupdate data About');
-      }
+      await axios.put(`${apiUrl}/abouts/${_id}`, formData);
 
       alert('Data berhasil diperbarui!');
       navigate('/about');
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error updating data:', error);
     }
   };
 
@@ -64,7 +63,7 @@ const AboutUpdate = () => {
 
       <div className="grid grid-cols-1 gap-9 sm:grid-cols-1">
         <div className="flex flex-col gap-9">
-          {/* <!-- Update About Form --> */}
+          {/* Update About Form */}
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
               <h3 className="font-medium text-black dark:text-white">

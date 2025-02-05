@@ -28,7 +28,7 @@ const upload = multer({ storage: storage });
 router.post("/", upload.single("image"), createCertificate);
 router.get("/", getAllCertificates);
 router.get("/:id", getCertificateById);
-router.put("/:id", updateCertificate);
+router.put("/:id", upload.single("image"), updateCertificate);
 router.delete("/:id", deleteCertificate);
 
 module.exports = router;

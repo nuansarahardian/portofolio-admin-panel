@@ -1,150 +1,182 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 
-const AboutUpdate = () => {
+const apiUrl = import.meta.env.VITE_API_URL;
+
+interface CertificateData {
+  image: File | null;
+  title: string;
+  year: string;
+  company: string;
+  category: string;
+  existingImage: string;
+}
+
+const CertificateUpdate: React.FC = () => {
   const navigate = useNavigate();
-  const { _id } = useParams(); // Mengambil ID dari URL
-  const [formData, setFormData] = useState({
-    self_desc: '',
-    location: '',
-    education: '',
-    experience_desc: '',
+  const { _id } = useParams<{ _id: string }>();
+  const [formData, setFormData] = useState<CertificateData>({
+    image: null,
+    title: '',
+    year: '',
+    company: '',
+    category: '',
+    existingImage: '',
   });
 
-  // Fetch data berdasarkan ID saat komponen pertama kali dimuat
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchCertificate = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/abouts/${_id}`);
-        if (!response.ok) {
-          throw new Error('Gagal mengambil data About');
-        }
-        const data = await response.json();
-        setFormData(data); // Set data ke state
+        const response = await axios.get(`${apiUrl}/certificates/${_id}`);
+        const data = response.data;
+        setFormData({
+          title: data.title,
+          year: data.year,
+          company: data.company,
+          category: data.category,
+          existingImage: data.image,
+          image: null,
+        });
       } catch (error) {
-        console.error('Error:', error);
+        console.error('Error fetching certificate:', error);
       }
     };
 
-    if (_id) {
-      fetchData();
-    }
+    if (_id) fetchCertificate();
   }, [_id]);
 
-  const handleChange = (e) => {
+  const handleChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      setFormData({ ...formData, image: e.target.files[0] });
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    const data = new FormData();
+    if (formData.image) {
+      data.append('image', formData.image);
+    }
+    data.append('title', formData.title);
+    data.append('year', formData.year);
+    data.append('company', formData.company);
+    data.append('category', formData.category);
+
     try {
-      const response = await fetch(`http://localhost:5000/abouts/${_id}`, {
-        method: 'PUT', // Menggunakan PUT untuk update
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!response.ok) {
-        throw new Error('Gagal mengupdate data About');
-      }
-
+      await axios.put(`${apiUrl}/certificates/${_id}`, data);
       alert('Data berhasil diperbarui!');
-      navigate('/about');
+      navigate('/certificate');
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error updating certificate:', error);
     }
   };
 
   return (
     <>
-      <Breadcrumb pageName="Update About" />
-
+      <Breadcrumb pageName="Update Certificate" />
       <div className="grid grid-cols-1 gap-9 sm:grid-cols-1">
         <div className="flex flex-col gap-9">
-          {/* <!-- Update About Form --> */}
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
               <h3 className="font-medium text-black dark:text-white">
-                Update About
+                Update Certificate
               </h3>
             </div>
-            <form onSubmit={handleSubmit}>
-              <div className="p-6.5">
-                {/* Self Description */}
+            <form onSubmit={handleSubmit} className="p-6.5">
+              {formData.existingImage && (
                 <div className="mb-4.5">
                   <label className="mb-2.5 block text-black dark:text-white">
-                    Self Description
+                    Current Image
                   </label>
-                  <input
-                    type="text"
-                    name="self_desc"
-                    value={formData.self_desc}
-                    onChange={handleChange}
-                    placeholder="Enter your self description"
-                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                    required
+                  <img
+                    src={`${apiUrl}/${formData.existingImage}`}
+                    alt="Current"
+                    className="w-24 h-24 object-cover rounded"
                   />
                 </div>
+              )}
 
-                {/* Location */}
-                <div className="mb-4.5">
-                  <label className="mb-2.5 block text-black dark:text-white">
-                    Location
-                  </label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleChange}
-                    placeholder="Enter your location"
-                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                    required
-                  />
-                </div>
-
-                {/* Education */}
-                <div className="mb-4.5">
-                  <label className="mb-2.5 block text-black dark:text-white">
-                    Education
-                  </label>
-                  <input
-                    type="text"
-                    name="education"
-                    value={formData.education}
-                    onChange={handleChange}
-                    placeholder="Enter your education"
-                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                    required
-                  />
-                </div>
-
-                {/* Experience Description */}
-                <div className="mb-4.5">
-                  <label className="mb-2.5 block text-black dark:text-white">
-                    Experience Description
-                  </label>
-                  <textarea
-                    name="experience_desc"
-                    rows={4}
-                    value={formData.experience_desc}
-                    onChange={handleChange}
-                    placeholder="Enter your experience description"
-                    className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                    required
-                  ></textarea>
-                </div>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  className="flex w-full justify-center rounded bg-primary p-3 font-medium text-gray hover:bg-opacity-90"
-                >
-                  Update
-                </button>
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  New Image (Optional)
+                </label>
+                <input
+                  type="file"
+                  name="image"
+                  onChange={handleFileChange}
+                  className="w-full cursor-pointer"
+                />
               </div>
+
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded"
+                />
+              </div>
+
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Year
+                </label>
+                <input
+                  type="text"
+                  name="year"
+                  value={formData.year}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded"
+                />
+              </div>
+
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Company
+                </label>
+                <textarea
+                  name="company"
+                  value={formData.company}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded"
+                />
+              </div>
+
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Category
+                </label>
+                <textarea
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full p-3 rounded bg-primary text-gray font-medium hover:bg-opacity-90"
+              >
+                Update
+              </button>
             </form>
           </div>
         </div>
@@ -153,4 +185,4 @@ const AboutUpdate = () => {
   );
 };
 
-export default AboutUpdate;
+export default CertificateUpdate;

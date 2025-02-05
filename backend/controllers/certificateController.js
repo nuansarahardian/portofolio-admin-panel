@@ -1,4 +1,5 @@
 const Certificate = require("../models/certificateModel");
+const fs = require("fs"); // Untuk menghapus file lama jika ada
 
 const getAllCertificates = async (req, res) => {
   try {
@@ -12,8 +13,9 @@ const getAllCertificates = async (req, res) => {
 const getCertificateById = async (req, res) => {
   try {
     const certificate = await Certificate.findById(req.params.id);
-    if (!certificate)
+    if (!certificate) {
       return res.status(404).json({ message: "Data tidak ditemukan" });
+    }
     res.status(200).json(certificate);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -23,19 +25,16 @@ const getCertificateById = async (req, res) => {
 const createCertificate = async (req, res) => {
   try {
     const { title, year, company, category } = req.body;
-    // Ambil path gambar yang di-upload
-    const image = req.file ? req.file.path : null; // Menyimpan path file jika gambar di-upload
+    const image = req.file ? req.file.path : null; // Simpan path gambar jika ada
 
-    // Membuat data sertifikat dengan gambar
     const certificate = new Certificate({
       title,
       year,
       company,
       category,
-      image, // Menyimpan path gambar ke database
+      image,
     });
 
-    // Simpan certificate ke database
     await certificate.save();
     res.status(201).json(certificate);
   } catch (error) {
@@ -45,14 +44,35 @@ const createCertificate = async (req, res) => {
 
 const updateCertificate = async (req, res) => {
   try {
-    const certificate = await Certificate.findByIdAndUpdate(
+    const { title, year, company, category } = req.body;
+    const certificate = await Certificate.findById(req.params.id);
+
+    if (!certificate) {
+      return res.status(404).json({ message: "Data tidak ditemukan" });
+    }
+
+    // Jika ada file gambar baru, hapus gambar lama
+    let updatedImage = certificate.image;
+    if (req.file) {
+      if (certificate.image) {
+        fs.unlinkSync(certificate.image); // Hapus file lama dari server
+      }
+      updatedImage = req.file.path;
+    }
+
+    const updatedCertificate = await Certificate.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      {
+        title,
+        year,
+        company,
+        category,
+        image: updatedImage,
+      },
       { new: true }
     );
-    if (!certificate)
-      return res.status(404).json({ message: "Data tidak ditemukan" });
-    res.status(200).json(certificate);
+
+    res.status(200).json(updatedCertificate);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -60,9 +80,17 @@ const updateCertificate = async (req, res) => {
 
 const deleteCertificate = async (req, res) => {
   try {
-    const certificate = await Certificate.findByIdAndDelete(req.params.id);
-    if (!certificate)
+    const certificate = await Certificate.findById(req.params.id);
+    if (!certificate) {
       return res.status(404).json({ message: "Data tidak ditemukan" });
+    }
+
+    // Hapus gambar terkait jika ada
+    if (certificate.image) {
+      fs.unlinkSync(certificate.image);
+    }
+
+    await Certificate.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: "Data berhasil dihapus" });
   } catch (error) {
     res.status(500).json({ message: error.message });

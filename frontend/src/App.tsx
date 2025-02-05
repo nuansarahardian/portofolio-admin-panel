@@ -17,6 +17,9 @@ import About from './pages/About/About';
 import Certificate from './pages/Certificate/Certificate';
 import CertificateUpdate from './pages/Certificate/CertificateUpdate';
 import CertificateCreate from './pages/Certificate/CertificateCreate';
+import Project from './pages/Project/Project';
+import ProjectCreate from './pages/Project/ProjectCreate';
+import ProjectUpdate from './pages/Project/ProjectUpdate';
 import Settings from './pages/Settings';
 import Tables from './pages/Tables';
 import Alerts from './pages/UiElements/Alerts';
@@ -67,7 +70,7 @@ function App() {
             </>
           }
         />
-        <Route path="/aboutupdate/:_id" element={<AboutUpdate />} />
+        <Route path="/about_edit/:_id" element={<AboutUpdate />} />
         <Route
           path="/about"
           element={
@@ -99,7 +102,25 @@ function App() {
           path="/certificate_update/:_id"
           element={<CertificateUpdate />}
         />
-
+        <Route
+          path="/project"
+          element={
+            <>
+              <PageTitle title="Project" />
+              <Project />
+            </>
+          }
+        />
+        <Route
+          path="/project_create"
+          element={
+            <>
+              <PageTitle title="Create Project" />
+              <ProjectCreate />
+            </>
+          }
+        />
+        <Route path="/project_update/:_id" element={<ProjectUpdate />} />
         <Route
           path="/profile"
           element={
