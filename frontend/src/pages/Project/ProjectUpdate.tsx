@@ -1,20 +1,29 @@
-import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-const ProjectUpdate = () => {
+interface ProjectData {
+  title: string;
+  desc: string;
+  tech: string;
+  category: string;
+  image: string;
+  link: string;
+}
+
+const ProjectUpdate: React.FC = () => {
   const { _id } = useParams<{ _id: string }>();
   const navigate = useNavigate();
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<ProjectData>({
     title: '',
     desc: '',
     tech: '',
     category: '',
-    image: null as File | null,
+    image: '',
     link: '',
   });
   const [loading, setLoading] = useState(false);
@@ -23,7 +32,7 @@ const ProjectUpdate = () => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const response = await axios.get(`${API_URL}/project/${_id}`);
+        const response = await axios.get(`${API_URL}/projects/${_id}`);
         const project = response.data;
 
         setFormData({
@@ -31,7 +40,7 @@ const ProjectUpdate = () => {
           desc: project.desc,
           tech: project.tech.join(', '),
           category: project.category,
-          image: null,
+          image: project.image, // URL to the current image
           link: project.link,
         });
       } catch (err) {
@@ -44,19 +53,19 @@ const ProjectUpdate = () => {
   }, [_id]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setFormData((prev) => ({ ...prev, image: e.target.files![0] }));
+      setFormData((prev) => ({ ...prev, image: e.target.files[0] }));
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
@@ -88,70 +97,119 @@ const ProjectUpdate = () => {
   return (
     <>
       <Breadcrumb pageName="Update Project" />
-      <div className="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">
-          Edit Project
-        </h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
-            type="text"
-            name="title"
-            placeholder="Project Name"
-            required
-            value={formData.title}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-          <textarea
-            name="desc"
-            placeholder="Description"
-            required
-            value={formData.desc}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="text"
-            name="tech"
-            placeholder="Technologies (comma separated)"
-            required
-            value={formData.tech}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="text"
-            name="category"
-            placeholder="Category"
-            required
-            value={formData.category}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="file"
-            name="image"
-            onChange={handleFileChange}
-            className="w-full p-2 border rounded"
-          />
-          <input
-            type="url"
-            name="link"
-            placeholder="Project Link"
-            required
-            value={formData.link}
-            onChange={handleChange}
-            className="w-full p-2 border rounded"
-          />
-          <button
-            type="submit"
-            className="w-full p-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-            disabled={loading}
-          >
-            {loading ? 'Updating...' : 'Update Project'}
-          </button>
-        </form>
+      <div className="grid grid-cols-1 gap-9 sm:grid-cols-1">
+        <div className="flex flex-col gap-9">
+          <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
+            <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
+              <h3 className="font-medium text-black dark:text-white">
+                Update Project
+              </h3>
+            </div>
+            <form onSubmit={handleSubmit} className="p-6.5">
+              {formData.image && (
+                <div className="mb-4.5">
+                  <label className="mb-2.5 block text-black dark:text-white">
+                    Current Image
+                  </label>
+                  <img
+                    src={`${API_URL}/${formData.image}`}
+                    alt="Current Project Image"
+                    className="w-32 h-32 object-cover rounded"
+                  />
+                </div>
+              )}
+
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  New Image (Optional)
+                </label>
+                <input
+                  type="file"
+                  name="image"
+                  onChange={handleFileChange}
+                  className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
+                />
+              </div>
+
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Project Name
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                />
+              </div>
+
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Description
+                </label>
+                <textarea
+                  name="desc"
+                  value={formData.desc}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                />
+              </div>
+
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Technologies (comma separated)
+                </label>
+                <input
+                  type="text"
+                  name="tech"
+                  value={formData.tech}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                />
+              </div>
+
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Category
+                </label>
+                <input
+                  type="text"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                />
+              </div>
+
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Project Link
+                </label>
+                <input
+                  type="url"
+                  name="link"
+                  value={formData.link}
+                  onChange={handleChange}
+                  required
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full p-3 rounded bg-primary text-gray font-medium hover:bg-opacity-90"
+                disabled={loading}
+              >
+                {loading ? 'Updating...' : 'Update Project'}
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </>
   );
