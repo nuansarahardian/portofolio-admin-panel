@@ -1,54 +1,29 @@
-import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useState, ChangeEvent, FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-interface WorkData {
+interface FormData {
   role: string;
   dateStart: string;
   dateEnd: string;
   company: string;
   desc: string[];
-  logo: File | string;
-  existingLogo: string;
+  logo: File | null;
 }
 
-const WorkUpdate: React.FC = () => {
+const OrganizationCreate = () => {
   const navigate = useNavigate();
-  const { _id } = useParams<{ _id: string }>();
-  const [formData, setFormData] = useState<WorkData>({
+  const [formData, setFormData] = useState<FormData>({
     role: '',
     dateStart: '',
     dateEnd: '',
     company: '',
     desc: [''],
-    logo: '',
-    existingLogo: '',
+    logo: null,
   });
-
-  useEffect(() => {
-    const fetchWork = async () => {
-      try {
-        const response = await axios.get(`${apiUrl}/works/${_id}`);
-        const data = response.data;
-        setFormData({
-          role: data.role,
-          dateStart: data.dateStart.slice(0, 10),
-          dateEnd: data.dateEnd.slice(0, 10),
-          company: data.company,
-          desc: data.desc,
-          logo: '',
-          existingLogo: data.logo, // Store the existing logo URL
-        });
-      } catch (error) {
-        console.error('Error fetching work:', error);
-      }
-    };
-
-    if (_id) fetchWork();
-  }, [_id]);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -81,9 +56,6 @@ const WorkUpdate: React.FC = () => {
     e.preventDefault();
 
     const data = new FormData();
-    if (formData.logo) {
-      data.append('logo', formData.logo);
-    }
     data.append('role', formData.role);
     data.append('dateStart', formData.dateStart);
     data.append('dateEnd', formData.dateEnd);
@@ -91,53 +63,32 @@ const WorkUpdate: React.FC = () => {
     formData.desc.forEach((desc, index) => {
       data.append(`desc[${index}]`, desc);
     });
+    if (formData.logo) data.append('logo', formData.logo);
 
     try {
-      await axios.put(`${apiUrl}/works/${_id}`, data);
-      alert('Data berhasil diperbarui!');
-      navigate('/work');
+      await axios.post(`${apiUrl}/organizations`, data, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      alert('Organization successfully created!');
+      navigate('/organization');
     } catch (error) {
-      console.error('Error updating work:', error);
+      console.error('Error:', error);
     }
   };
 
   return (
     <>
-      <Breadcrumb pageName="Update Work Experience" />
+      <Breadcrumb pageName="Create Organization" />
       <div className="grid grid-cols-1 gap-9 sm:grid-cols-1">
         <div className="flex flex-col gap-9">
           <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
             <div className="border-b border-stroke py-4 px-6.5 dark:border-strokedark">
               <h3 className="font-medium text-black dark:text-white">
-                Update Work Experience
+                Create Organization
               </h3>
             </div>
             <form onSubmit={handleSubmit} className="p-6.5">
-              {formData.existingLogo && (
-                <div className="mb-4.5">
-                  <label className="mb-2.5 block text-black dark:text-white">
-                    Current Logo
-                  </label>
-                  <img
-                    src={`${apiUrl}/${formData.existingLogo}`}
-                    alt="Current Logo"
-                    className="w-24 h-24 object-cover rounded"
-                  />
-                </div>
-              )}
-
-              <div className="mb-4.5">
-                <label className="mb-2.5 block text-black dark:text-white">
-                  New Logo (Optional)
-                </label>
-                <input
-                  type="file"
-                  name="logo"
-                  onChange={handleFileChange}
-                  className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary"
-                />
-              </div>
-
+              {/* Role */}
               <div className="mb-4.5">
                 <label className="mb-2.5 block text-black dark:text-white">
                   Role
@@ -147,11 +98,13 @@ const WorkUpdate: React.FC = () => {
                   name="role"
                   value={formData.role}
                   onChange={handleChange}
+                  placeholder="Enter role"
                   required
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                 />
               </div>
 
+              {/* Date Start */}
               <div className="mb-4.5">
                 <label className="mb-2.5 block text-black dark:text-white">
                   Start Date
@@ -162,10 +115,11 @@ const WorkUpdate: React.FC = () => {
                   value={formData.dateStart}
                   onChange={handleChange}
                   required
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                 />
               </div>
 
+              {/* Date End */}
               <div className="mb-4.5">
                 <label className="mb-2.5 block text-black dark:text-white">
                   End Date
@@ -176,10 +130,11 @@ const WorkUpdate: React.FC = () => {
                   value={formData.dateEnd}
                   onChange={handleChange}
                   required
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                 />
               </div>
 
+              {/* Company */}
               <div className="mb-4.5">
                 <label className="mb-2.5 block text-black dark:text-white">
                   Company
@@ -189,11 +144,13 @@ const WorkUpdate: React.FC = () => {
                   name="company"
                   value={formData.company}
                   onChange={handleChange}
+                  placeholder="Enter company name"
                   required
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                 />
               </div>
 
+              {/* Description */}
               <div className="mb-4.5">
                 <label className="mb-2.5 block text-black dark:text-white">
                   Description
@@ -228,11 +185,25 @@ const WorkUpdate: React.FC = () => {
                 </button>
               </div>
 
+              {/* Logo */}
+              <div className="mb-4.5">
+                <label className="mb-2.5 block text-black dark:text-white">
+                  Logo
+                </label>
+                <input
+                  type="file"
+                  onChange={handleFileChange}
+                  required
+                  className="w-full cursor-pointer rounded-lg border-[1.5px] border-stroke bg-transparent outline-none transition file:mr-5 file:border-collapse file:cursor-pointer file:border-0 file:border-r file:border-solid file:border-stroke file:bg-whiter file:py-3 file:px-5 file:hover:bg-primary file:hover:bg-opacity-10 focus:border-primary active:border-primary disabled:cursor-default disabled:bg-whiter dark:border-form-strokedark dark:bg-form-input dark:file:border-form-strokedark dark:file:bg-white/30 dark:file:text-white dark:focus:border-primary mb-6"
+                />
+              </div>
+
+              {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full p-3 rounded bg-primary text-gray font-medium hover:bg-opacity-90"
+                className="w-full p-3 bg-primary text-white rounded"
               >
-                Update
+                Submit
               </button>
             </form>
           </div>
@@ -242,4 +213,4 @@ const WorkUpdate: React.FC = () => {
   );
 };
 
-export default WorkUpdate;
+export default OrganizationCreate;

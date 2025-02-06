@@ -21,9 +21,9 @@ const getWorkById = async (req, res) => {
 
 const createWork = async (req, res) => {
   try {
-    const { role, dateStart, dateEnd, company, desc } = req.body;
+    const { role, dateStart, dateEnd, company } = req.body;
     const logo = req.file ? req.file.path : null;
-    const descArray = desc ? desc.split(",").map((item) => item.trim()) : [];
+    const desc = req.body.desc;
 
     // Validate the necessary fields
     if (!role || !dateStart || !dateEnd || !company || !desc || !logo) {
@@ -38,7 +38,7 @@ const createWork = async (req, res) => {
       dateStart,
       dateEnd,
       company,
-      desc: descArray,
+      desc,
       logo,
     });
 
@@ -53,33 +53,40 @@ const createWork = async (req, res) => {
 
 const updateWork = async (req, res) => {
   try {
-    const { role, dateStart, dateEnd, company, desc } = req.body;
+    const { role, dateStart, dateEnd, company } = req.body;
+    const desc = req.body.desc; // Ini akan menjadi array
+    const logo = req.file ? req.file.path : null;
 
-    // Ensure the necessary fields are provided
+    // Pastikan field yang diperlukan ada
     if (!role || !dateStart || !dateEnd || !company || !desc) {
       return res
         .status(400)
         .json({ message: "Harap lengkapi semua data yang diperlukan." });
     }
 
-    // Handle the description by splitting and trimming
-    const descArray = desc.split(",").map((item) => item.trim());
+    // Siapkan data yang akan diupdate
+    let updatedData = {
+      role,
+      dateStart,
+      dateEnd,
+      company,
+      desc: Array.isArray(desc) ? desc : [desc], // Pastikan desc adalah array
+    };
 
-    // Prepare the updated data, including a logo if uploaded
-    let updatedData = { role, dateStart, dateEnd, company, desc: descArray };
-
-    // If a new logo file is uploaded, update the logo path
-    if (req.file) {
-      updatedData.logo = req.file.path;
+    // Jika ada file logo baru, tambahkan ke data yang diupdate
+    if (logo) {
+      updatedData.logo = logo;
     }
 
-    // Find and update the work entry by ID
+    // Update data di database
     const work = await Work.findByIdAndUpdate(req.params.id, updatedData, {
-      new: true,
-      runValidators: true,
+      new: true, // Mengembalikan data yang sudah diupdate
+      runValidators: true, // Menjalankan validasi schema
     });
 
-    if (!work) return res.status(404).json({ message: "Data tidak ditemukan" });
+    if (!work) {
+      return res.status(404).json({ message: "Data tidak ditemukan" });
+    }
 
     res.status(200).json(work);
   } catch (error) {

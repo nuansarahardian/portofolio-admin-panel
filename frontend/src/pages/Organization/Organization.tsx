@@ -5,7 +5,7 @@ import Breadcrumb from '../../components/Breadcrumbs/Breadcrumb';
 
 const apiUrl = import.meta.env.VITE_API_URL;
 
-interface Work {
+interface Organization {
   _id: string;
   role: string;
   dateStart: string;
@@ -15,15 +15,17 @@ interface Work {
   logo: string;
 }
 
-const Work = () => {
-  const [data, setData] = useState<Work[]>([]);
+const Organization = () => {
+  const [data, setData] = useState<Organization[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await axios.get<Work[]>(`${apiUrl}/works`);
+        const response = await axios.get<Organization[]>(
+          `${apiUrl}/organizations`,
+        );
         setData(response.data);
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -37,10 +39,12 @@ const Work = () => {
 
   const handleDelete = async (_id: string) => {
     if (
-      window.confirm('Are you sure you want to delete this work experience?')
+      window.confirm(
+        'Are you sure you want to delete this Organization experience?',
+      )
     ) {
       try {
-        await axios.delete(`${apiUrl}/works/${_id}`);
+        await axios.delete(`${apiUrl}/organizations/${_id}`);
         setData((prevData) => prevData.filter((item) => item._id !== _id));
       } catch (err) {
         console.error('Error deleting data:', err);
@@ -50,12 +54,12 @@ const Work = () => {
 
   return (
     <>
-      <Breadcrumb pageName="Work Experience" />
+      <Breadcrumb pageName="Organization Experience" />
       <Link
-        to="/work_create"
+        to="/organization_create"
         className="inline-flex items-center justify-center rounded-md bg-primary py-4 px-10 text-white hover:bg-opacity-90"
       >
-        Add Work Experience
+        Add Organization Experience
       </Link>
 
       {loading ? (
@@ -119,7 +123,7 @@ const Work = () => {
                       </td>
                       <td className="py-4 px-4 text-center">
                         <Link
-                          to={`/work_update/${item._id}`}
+                          to={`/organization_update/${item._id}`}
                           className="text-blue-500 hover:underline"
                         >
                           Edit
@@ -137,7 +141,7 @@ const Work = () => {
               </table>
               {data.length === 0 && (
                 <p className="text-center mt-4 text-gray-500">
-                  No work experience available
+                  No organization experience available
                 </p>
               )}
             </div>
@@ -148,4 +152,4 @@ const Work = () => {
   );
 };
 
-export default Work;
+export default Organization;

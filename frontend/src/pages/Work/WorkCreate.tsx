@@ -10,7 +10,7 @@ interface FormData {
   dateStart: string;
   dateEnd: string;
   company: string;
-  desc: string;
+  desc: string[];
   logo: File | null;
 }
 
@@ -21,7 +21,7 @@ const WorkCreate = () => {
     dateStart: '',
     dateEnd: '',
     company: '',
-    desc: '',
+    desc: [''],
     logo: null,
   });
 
@@ -37,6 +37,21 @@ const WorkCreate = () => {
     }
   };
 
+  const handleDescChange = (index: number, value: string) => {
+    const newDesc = [...formData.desc];
+    newDesc[index] = value;
+    setFormData({ ...formData, desc: newDesc });
+  };
+
+  const addDescField = () => {
+    setFormData({ ...formData, desc: [...formData.desc, ''] });
+  };
+
+  const removeDescField = (index: number) => {
+    const newDesc = formData.desc.filter((_, i) => i !== index);
+    setFormData({ ...formData, desc: newDesc });
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
@@ -45,7 +60,9 @@ const WorkCreate = () => {
     data.append('dateStart', formData.dateStart);
     data.append('dateEnd', formData.dateEnd);
     data.append('company', formData.company);
-    data.append('desc', formData.desc);
+    formData.desc.forEach((desc, index) => {
+      data.append(`desc[${index}]`, desc);
+    });
 
     if (formData.logo) data.append('logo', formData.logo);
 
@@ -133,20 +150,40 @@ const WorkCreate = () => {
                   className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
                 />
               </div>
-              {/* desc */}
+
+              {/* Description */}
               <div className="mb-4.5">
                 <label className="mb-2.5 block text-black dark:text-white">
-                  desc
+                  Description
                 </label>
-                <input
-                  type="text"
-                  name="desc"
-                  value={formData.desc}
-                  onChange={handleChange}
-                  placeholder="Enter desc"
-                  required
-                  className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
-                />
+                {formData.desc.map((desc, index) => (
+                  <div key={index} className="flex gap-2 mb-2">
+                    <input
+                      type="text"
+                      value={desc}
+                      onChange={(e) => handleDescChange(index, e.target.value)}
+                      placeholder="Enter description"
+                      required
+                      className="w-full rounded border-[1.5px] border-stroke bg-transparent py-3 px-5 text-black outline-none transition focus:border-primary active:border-primary dark:border-form-strokedark dark:bg-form-input dark:text-white dark:focus:border-primary"
+                    />
+                    {index > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => removeDescField(index)}
+                        className="p-3 bg-red-500 text-white rounded"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={addDescField}
+                  className="p-3 bg-primary text-white rounded"
+                >
+                  Add Description
+                </button>
               </div>
 
               {/* Logo */}

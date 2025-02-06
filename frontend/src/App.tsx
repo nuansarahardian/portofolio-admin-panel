@@ -23,6 +23,9 @@ import ProjectUpdate from './pages/Project/ProjectUpdate';
 import Work from './pages/Work/Work';
 import WorkCreate from './pages/Work/WorkCreate';
 import WorkUpdate from './pages/Work/WorkUpdate';
+import Organization from './pages/Organization/Organization';
+import OrganizationCreate from './pages/Organization/OrganizationCreate';
+import OrganizationUpdate from './pages/Organization/OrganizationUpdate';
 
 import Settings from './pages/Settings';
 import Tables from './pages/Tables';
@@ -82,6 +85,33 @@ function App() {
             <>
               <PageTitle title="About" />
               <About />
+            </>
+          }
+        />
+        <Route
+          path="/organization"
+          element={
+            <>
+              <PageTitle title="Organization" />
+              <Organization />
+            </>
+          }
+        />
+        <Route
+          path="/organization_create"
+          element={
+            <>
+              <PageTitle title="Organization Create" />
+              <OrganizationCreate />
+            </>
+          }
+        />
+        <Route
+          path="/organization_update/:_id"
+          element={
+            <>
+              <PageTitle title="Organization Update" />
+              <OrganizationUpdate />
             </>
           }
         />
